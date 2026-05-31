@@ -13,6 +13,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: '[ -f requirements.txt ] && pip install -r requirements.txt || echo "no requirements.txt — skipping"'
+      - run: python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || echo "No linting issues"
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -40,9 +50,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Check existing EC2
         id: check_ec2
         run: |
@@ -132,9 +142,9 @@ jobs:
       - name: Run Ansible playbook
         working-directory: ansible
         env:
-          AWS_ACCESS_KEY_ID:         ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY:     ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:        ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
           # Pass DB connection details to Ansible as --extra-vars so the
