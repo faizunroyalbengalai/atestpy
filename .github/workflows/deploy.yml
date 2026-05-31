@@ -175,3 +175,27 @@ jobs:
           done
           curl -sf http://${{ needs.provision.outputs.server_ip }}${HEALTH_PATH} \
             || { echo "ERROR: ${HEALTH_PATH} returned non-2xx after all retries — deploy failed"; exit 1; }
+  notify_slack:
+    runs-on: ubuntu-latest
+    needs: verify
+    if: always()
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "Workflow ${{ job.status }}: ${{ github.workflow }} #${{ github.run_number }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Workflow: ${{ github.workflow }}\nStatus: ${{ job.status }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
